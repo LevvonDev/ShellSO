@@ -117,8 +117,27 @@ void free_arguments(char **arguments) {
 }
 
 void handle_internal_commands(char **arguments) {
-    if (strcmp(arguments[0], "exit") == 0) {
+    if (strcmp(arguments[0], "exit") == 0)
+    {
+        printf("SAINDO...\n");
         // Saindo do shell
         exit(EXIT_SUCCESS);
+    }
+
+    else if (strcmp(arguments[0], "cd") == 0) {
+        
+        if (arguments[1] == NULL)
+        {
+            printf("Por favor especifique um diretorio\n");
+            return;
+        } 
+        else 
+        {
+            if (arguments[1] != NULL) 
+            {
+                chdir(arguments[1]);
+                
+            }
+        }
     }
 }
