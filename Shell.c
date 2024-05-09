@@ -20,8 +20,17 @@ int main() {
     int num_tokens;
 
     while (1) {
+        // Obtém o diretório de trabalho atual
+        char cwd[1024];
+        if (getcwd(cwd, sizeof(cwd)) != NULL) {
+            printf("Shell (%s)> ", cwd);
+        } else {
+            perror("getcwd() error");
+            break;
+        }
+
         // Lê a entrada do usuário usando readline
-        char *input = readline("Shell> ");
+        char *input = readline("");
 
         // Se a entrada for NULL, o usuário pressionou Ctrl+D, então saímos do loop
         if (input == NULL) {
