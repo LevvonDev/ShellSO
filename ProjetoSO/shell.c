@@ -129,7 +129,11 @@ int handle_internal_commands(char **arguments) {
             return 1;
         } else {
             if (arguments[1] != NULL) {
-                chdir(arguments[1]);
+                int verifCD = chdir(arguments[1]);
+                if (verifCD == -1)
+                {
+                    printf("diretorio nao encontrado!\n");
+                }
             }
         }
     } else if (strcmp(arguments[0], "path") == 0) {
