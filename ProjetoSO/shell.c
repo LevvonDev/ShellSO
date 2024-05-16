@@ -5,7 +5,8 @@
 #include <sys/wait.h>
 #include <readline/readline.h>
 #include <readline/history.h>
-#include <dirent.h> // Adicionado para usar a função opendir e readdir
+#include <dirent.h>
+
 #define MAX_ARGUMENTS 64
 #define MAX_PATHS 64
 
@@ -18,53 +19,105 @@ int handle_internal_commands(char **arguments);
 int handle_external_commands(char **arguments);
 
 int main() {
-    char *command = NULL;
-    char **arguments = NULL;
-    int num_tokens;
+    char input[10];
 
-    while (1) {
+    printf("Deseja executar comandos por batch ou por linhas de comando? (batch/linha): ");
+    fflush(stdin);
+    fgets(input, sizeof(input), stdin);
 
-        char cwd[1024];
-        if (getcwd(cwd, sizeof(cwd)) != NULL) {
-            printf("Shell (%s)> ", cwd);
-        } else {
-            perror("getcwd() error");
-            break;
-        }
+    if (strcmp(input, "batch\n") == 0) {
+        FILE *batch_file;
+        char *batch_line = NULL;
+        size_t len = 0;
+        ssize_t read;
 
-        char *input = readline("");
-
-        if (input == NULL) {
-            printf("\n");
-            break;
-        }
-
-        if (strlen(input) > 0) {
-            add_history(input);
-        }
-
-        num_tokens = parse_command(input, &arguments);
-
-        command = strdup(input);
-        if (command == NULL) {
-            perror("Falha na alocação de memória para o comando");
+        batch_file = fopen("shell.batch", "r");
+        if (batch_file == NULL) {
+            perror("Erro ao abrir o arquivo .batch");
             exit(EXIT_FAILURE);
         }
 
-        // verifica se o comando interno existe
-        if (num_tokens > 0) {
-            if (!handle_internal_commands(arguments)) {
-                // Se não for um comando interno, verifica se é externo
-                if (!handle_external_commands(arguments)) {
+        while ((read = getline(&batch_line, &len, batch_file)) != -1) {
+            if (batch_line[read - 2] == '\r')
+            {
+                batch_line[read - 2 ] = '\0';
+                batch_line[read - 1] = '\0'; 
+            }
+            
+            if (batch_line[read - 1] == '\n') {
+                batch_line[read - 1] = '\0';
+            }
+
+            char **arguments = NULL;
+            int num_tokens;
+
+            num_tokens = parse_command(batch_line, &arguments);
+
+            // verifica se o comando interno existe
+            if (num_tokens > 0) {
+                if (!handle_internal_commands(arguments)) {
+                    // Se não for um comando interno, verifica se é externo
+                    if (!handle_external_commands(arguments)) {
+                    }
                 }
             }
+
+            free_arguments(arguments);
         }
 
-        free(command);
-        free_arguments(arguments);
-        arguments = NULL;
+        free(batch_line);
+        fclose(batch_file);
+    } else if (strcmp(input, "linha\n") == 0) {
+        char *command = NULL;
+        char **arguments = NULL;
+        int num_tokens;
 
-        free(input);
+        while (1) {
+            char cwd[1024];
+            if (getcwd(cwd, sizeof(cwd)) != NULL) {
+                printf("Shell (%s)> ", cwd);
+            } else {
+                perror("getcwd() error");
+                break;
+            }
+
+            char *input = readline("");
+
+            if (input == NULL) {
+                printf("\n");
+                break;
+            }
+
+            if (strlen(input) > 0) {
+                add_history(input);
+            }
+
+            num_tokens = parse_command(input, &arguments);
+
+            command = strdup(input);
+            if (command == NULL) {
+                perror("Falha na alocação de memória para o comando");
+                exit(EXIT_FAILURE);
+            }
+
+            // verifica se o comando interno existe
+            if (num_tokens > 0) {
+                if (!handle_internal_commands(arguments)) {
+                    // Se não for um comando interno, verifica se é externo
+                    if (!handle_external_commands(arguments)) {
+                    }
+                }
+            }
+
+            free(command);
+            free_arguments(arguments);
+            arguments = NULL;
+
+            free(input);
+        }
+    } else {
+        printf("Opção inválida.\n");
+        return EXIT_FAILURE;
     }
 
     return 0;
@@ -83,7 +136,6 @@ int parse_command(char *command, char ***arguments) {
 
     token = strtok(command, " ");
     while (token != NULL) {
-
         args[num_tokens] = strdup(token);
         if (args[num_tokens] == NULL) {
             perror("Falha na alocação de memória para os argumentos");
@@ -91,12 +143,10 @@ int parse_command(char *command, char ***arguments) {
         }
 
         num_tokens++;
-
         token = strtok(NULL, " ");
     }
 
     args[num_tokens] = NULL;
-
     *arguments = args;
 
     return num_tokens;
@@ -130,12 +180,12 @@ int handle_internal_commands(char **arguments) {
         } else {
             if (arguments[1] != NULL) {
                 int verifCD = chdir(arguments[1]);
-                if (verifCD == -1)
-                {
+                if (verifCD == -1) {
                     printf("diretorio nao encontrado!\n");
                 }
             }
         }
+        return 1; // Indicando que o comando interno foi tratado
     } else if (strcmp(arguments[0], "path") == 0) {
         for (int i = 0; i < num_paths; i++) {
             free(paths[i]);
@@ -145,20 +195,18 @@ int handle_internal_commands(char **arguments) {
         for (int i = 1; arguments[i] != NULL; i++) {
             add_path(arguments[i]);
         }
-        return 1;
-    } 
-    return 0;
+        return 1; // Indicando que o comando interno foi tratado
+    }
+    return 0; // Não é um comando interno
 }
 
 int handle_external_commands(char **arguments) {
     char *command = arguments[0];
-
-  
     int command_found = 0;
 
     // verificar se é um comando interno
     if (strcmp(command, "exit") == 0 || strcmp(command, "cd") == 0 || strcmp(command, "path") == 0) {
-        return 0; 
+        return 0;
     }
 
     for (int i = 0; i < num_paths; i++) {

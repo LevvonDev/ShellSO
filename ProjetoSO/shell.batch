@@ -1,0 +1,5 @@
+path /home/danirso/labs/Projeto-Final-OS/ProjetoSO/comandos-externos
+ls
+cd comandos-externos
+ls
+exit
