@@ -13,10 +13,10 @@
 char *paths[MAX_PATHS];
 int num_paths = 0;
 
-int parse_command(char *command, char ***arguments);
+int parse_command(char *command, char ***arguments, char **output_file);
 void free_arguments(char **arguments);
 int handle_internal_commands(char **arguments);
-int handle_external_commands(char **arguments);
+int handle_external_commands(char **arguments, char *output_file);
 
 int main() {
     char input[10];
@@ -38,31 +38,30 @@ int main() {
         }
 
         while ((read = getline(&batch_line, &len, batch_file)) != -1) {
-            if (batch_line[read - 2] == '\r')
-            {
-                batch_line[read - 2 ] = '\0';
-                batch_line[read - 1] = '\0'; 
+            if (batch_line[read - 2] == '\r') {
+                batch_line[read - 2] = '\0';
+                batch_line[read - 1] = '\0';
             }
-            
+
             if (batch_line[read - 1] == '\n') {
                 batch_line[read - 1] = '\0';
             }
 
             char **arguments = NULL;
+            char *output_file = NULL;
             int num_tokens;
 
-            num_tokens = parse_command(batch_line, &arguments);
+            num_tokens = parse_command(batch_line, &arguments, &output_file);
 
-            // verifica se o comando interno existe
             if (num_tokens > 0) {
                 if (!handle_internal_commands(arguments)) {
-                    // Se não for um comando interno, verifica se é externo
-                    if (!handle_external_commands(arguments)) {
+                    if (!handle_external_commands(arguments, output_file)) {
                     }
                 }
             }
 
             free_arguments(arguments);
+            free(output_file);
         }
 
         free(batch_line);
@@ -70,6 +69,7 @@ int main() {
     } else if (strcmp(input, "linha\n") == 0) {
         char *command = NULL;
         char **arguments = NULL;
+        char *output_file = NULL;
         int num_tokens;
 
         while (1) {
@@ -92,7 +92,7 @@ int main() {
                 add_history(input);
             }
 
-            num_tokens = parse_command(input, &arguments);
+            num_tokens = parse_command(input, &arguments, &output_file);
 
             command = strdup(input);
             if (command == NULL) {
@@ -100,17 +100,16 @@ int main() {
                 exit(EXIT_FAILURE);
             }
 
-            // verifica se o comando interno existe
             if (num_tokens > 0) {
                 if (!handle_internal_commands(arguments)) {
-                    // Se não for um comando interno, verifica se é externo
-                    if (!handle_external_commands(arguments)) {
+                    if (!handle_external_commands(arguments, output_file)) {
                     }
                 }
             }
 
             free(command);
             free_arguments(arguments);
+            free(output_file);
             arguments = NULL;
 
             free(input);
@@ -123,7 +122,8 @@ int main() {
     return 0;
 }
 
-int parse_command(char *command, char ***arguments) {
+//funcao para criacao dos tokens
+int parse_command(char *command, char ***arguments, char **output_file) {
     int num_tokens = 0;
     char *token;
     char **args = NULL;
@@ -134,15 +134,24 @@ int parse_command(char *command, char ***arguments) {
         exit(EXIT_FAILURE);
     }
 
+    *output_file = NULL;
+
     token = strtok(command, " ");
     while (token != NULL) {
-        args[num_tokens] = strdup(token);
-        if (args[num_tokens] == NULL) {
-            perror("Falha na alocação de memória para os argumentos");
-            exit(EXIT_FAILURE);
+        if (strcmp(token, ">") == 0) {
+            token = strtok(NULL, " ");
+            if (token != NULL) {
+                *output_file = strdup(token);
+            }
+            break;
+        } else {
+            args[num_tokens] = strdup(token);
+            if (args[num_tokens] == NULL) {
+                perror("Falha na alocação de memória para os argumentos");
+                exit(EXIT_FAILURE);
+            }
+            num_tokens++;
         }
-
-        num_tokens++;
         token = strtok(NULL, " ");
     }
 
@@ -161,6 +170,7 @@ void free_arguments(char **arguments) {
     }
 }
 
+//funcao para criacao dos paths
 void add_path(char *path) {
     if (num_paths < MAX_PATHS) {
         paths[num_paths++] = strdup(path);
@@ -169,6 +179,7 @@ void add_path(char *path) {
     }
 }
 
+//funcao para tratar os comandos internos
 int handle_internal_commands(char **arguments) {
     if (strcmp(arguments[0], "exit") == 0) {
         printf("SAINDO...\n");
@@ -185,7 +196,7 @@ int handle_internal_commands(char **arguments) {
                 }
             }
         }
-        return 1; // Indicando que o comando interno foi tratado
+        return 1;
     } else if (strcmp(arguments[0], "path") == 0) {
         for (int i = 0; i < num_paths; i++) {
             free(paths[i]);
@@ -195,26 +206,20 @@ int handle_internal_commands(char **arguments) {
         for (int i = 1; arguments[i] != NULL; i++) {
             add_path(arguments[i]);
         }
-        return 1; // Indicando que o comando interno foi tratado
+        return 1;
     }
-    return 0; // Não é um comando interno
+    return 0;
 }
 
-int handle_external_commands(char **arguments) {
+//funcao para tratar comandos externos
+int handle_external_commands(char **arguments, char *output_file) {
     char *command = arguments[0];
     int command_found = 0;
 
-    // verificar se é um comando interno
-    if (strcmp(command, "exit") == 0 || strcmp(command, "cd") == 0 || strcmp(command, "path") == 0) {
-        return 0;
-    }
-
     for (int i = 0; i < num_paths; i++) {
-        // constroi o caminho completo para o comando
         char full_path[1024];
         snprintf(full_path, sizeof(full_path), "%s/%s", paths[i], command);
 
-        // verifica se o arquivo é executável
         if (access(full_path, X_OK) == 0) {
             command_found = 1;
             pid_t pid = fork();
@@ -222,6 +227,13 @@ int handle_external_commands(char **arguments) {
                 perror("fork");
                 return 1;
             } else if (pid == 0) {
+                if (output_file != NULL) {
+                    FILE *file = freopen(output_file, "w", stdout);
+                    if (file == NULL) {
+                        perror("Erro ao abrir o arquivo de saída");
+                        exit(EXIT_FAILURE);
+                    }
+                }
                 execv(full_path, arguments);
                 perror("execv");
                 exit(EXIT_FAILURE);
