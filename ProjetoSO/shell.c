@@ -207,6 +207,9 @@ int handle_internal_commands(char **arguments) {
             add_path(arguments[i]);
         }
         return 1;
+    } else if(strcmp(arguments[0], "clear") == 0){
+        system("clear");
+        return 1;
     }
     return 0;
 }
