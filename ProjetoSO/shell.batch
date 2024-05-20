@@ -1,6 +1,7 @@
 path /home/danirso/labs/ShellSO/ProjetoSO/comandos-externos
-ls > saida.txt
+ls 
+ls -a > saida.txt
 cat saida.txt
 cd comandos-externos
-ls
+ls -l
 exit
