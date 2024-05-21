@@ -32,7 +32,9 @@ Quando você executar o shell, você sera perguntado se deseja executar os coman
 - Os seguintes comandos estão disponiveis no nosso shell:
 
   **Comandos Disponiveis**
-    - Path: Define caminhos para busca de outros executaveis  **Exemplo**:<path /home/danirso/labs/ShellSO/ProjetoSO/comandos-externos>
+    - Path: Define caminhos para busca de outros executaveis  **Exemplo**:<path /home/usuario/pasta-compartilhada/ShellSO/ProjetoSO/comandos-externos>
+      **IMPORTANTE**
+        - Trocar "usuario" pelo seu usuario e "pasta-compartilhada" pela sua pasta compartilhada entre o seu sistema e a VM
     - cd: Muda o diretório atual                              **Exemplo**:<cd nome do diretório>
     - ls: Lista o conteudo do diretorio atual                 **Exemplo**:<ls>
     -  ls -l: Lista informações sobre todos os arquivos      **Exemplo**:<ls -l>
