@@ -5,17 +5,17 @@
 ```
 git clone https://github.com/LevvonDev/ShellSO.git
 ```
-- Antes de compilar e executar o código você deve instalar a biblioteca readline com o seguinte comando:
+- Antes de compilar e executar o código você deve instalar a biblioteca readline com o seguinte comando dentro da VM:
 
 ```
 sudo apt-get install libreadline-dev
 ```
-- Agora, compile o código com o seguinte comando:
+- Agora, compile o código com o seguinte comando dentro da VM:
 
 ```
 gcc -o shell shell.c -lreadline
 ```
-- Pronto, agora você pode executar o shell com o comando:
+- Pronto, agora você pode executar o shell com o comando dentro da VM:
 
 ```
 ./shell
