@@ -1,12 +1,14 @@
 # Projeto-Final-OS
 
 # Preparações
-
+- Baixe o arquivo desse repositório da branch "main" zipado, ou clone o respositorio na sua pasta compartilhada entre o seu sistema e a VM com o seguinte comando:
+```
+git clone https://github.com/LevvonDev/ShellSO.git
+```
 - Antes de compilar e executar o código você deve instalar a biblioteca readline com o seguinte comando:
 
 ```
 sudo apt-get install libreadline-dev
-
 ```
 - Agora, compile o código com o seguinte comando:
 
