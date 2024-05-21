@@ -38,7 +38,7 @@ Quando você executar o shell, você sera perguntado se deseja executar os coman
     -  ls -l: Lista informações sobre todos os arquivos      **Exemplo**:<ls -l>
     - ls -a: Lista todos os arquivos do diretorio atual, incluindo arquivos ocultos **Exemplo**:<ls -a>
     - cat: Le o conteudo de um arquivo e escreve a saida no terminal **Exemplo**:<cat ls.c>
-    Redirecionamento de Saida: Voce pode redirecionar a saida dos comandos ls/ls -l/ls -a/ cat para um arquivo saida.txt utilizando o sinal ">" apos o comando 
+    - Redirecionamento de Saida: Voce pode redirecionar a saida dos comandos ls/ls -l/ls -a/ cat para um arquivo saida.txt utilizando o sinal ">" apos o comando 
                               **Exemplo**:<cat ls.c > saida.txt>
                               
   **IMPORTANTE**
