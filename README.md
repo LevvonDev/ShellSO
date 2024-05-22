@@ -42,7 +42,7 @@ Quando você executar o shell, você sera perguntado se deseja executar os coman
     - cat: Le o conteudo de um arquivo e escreve a saida no terminal **Exemplo**:<cat ls.c>
     - Redirecionamento de Saida: Voce pode redirecionar a saida dos comandos ls/ls -l/ls -a/ cat para um arquivo saida.txt utilizando o sinal ">" apos o comando 
                               **Exemplo**: "cat ls.c > saida.txt"
-    - clear: limpa a tela do shell                            **Exemplo**:<clear>
+    - clear: limpa a tela do shell                            
                               
   **IMPORTANTE**
    - O comando **PATH** deve ser o primeiro a ser executado independente da versão de execução. Ele será usado para o shell encontrar os outros comandos.
